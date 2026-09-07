@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Медовый Замес</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #2a1a14; font-family: 'Montserrat Alternates', sans-serif; overflow: hidden; }
+        /* ИСПРАВЛЕНИЕ РАЗРЕШЕНИЯ: Работает на любых экранах */
+        .phone { width: min(100vw, 400px); height: min(100vh, 850px); position: relative; overflow: hidden; border-radius: 20px; background: linear-gradient(180deg, #fff5cc 0%, #ffd700 55%, #ffa500 100%); box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 0 20px rgba(255,255,255,0.5); }
+        .hex-bg { position: absolute; width: 100%; height: 100%; background-image: url("data:image/svg+xml,%3Csvg width='50' height='60' viewBox='0 0 50 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M25 0 L50 15 L50 45 L25 60 L0 45 L0 15 Z' fill='none' stroke='rgba(150, 100, 0, 0.25)' stroke-width='3'/%3E%3C/svg%3E"); background-size: 50px 60px; z-index: 1; }
+
+        /* ... (Все стили, как раньше, но с исправленными позициями и адаптивностью) ... */
+        .screen { position: absolute; top: 0; left: 0; right: 0; bottom: 0; transition: transform 0.4s ease; z-index: 2; }
+        .screen-1 { transform: translateX(0); } .screen-2 { transform: translateX(100%); } .screen-3 { transform: translateX(200%); } .screen-4 { transform: translateX(300%); } .screen-5 { transform: translateX(400%); }
+        .phone.show-slide-1 .screen-1 { transform: translateX(0); } .phone.show-slide-1 .screen-2 { transform: translateX(100%); } .phone.show-slide-1 .screen-3 { transform: translateX(200%); } .phone.show-slide-1 .screen-4 { transform: translateX(300%); } .phone.show-slide-1 .screen-5 { transform: translateX(400%); }
+        .phone.show-slide-2 .screen-1 { transform: translateX(-100%); } .phone.show-slide-2 .screen-2 { transform: translateX(0); } .phone.show-slide-2 .screen-3 { transform: translateX(100%); } .phone.show-slide-2 .screen-4 { transform: translateX(200%); } .phone.show-slide-2 .screen-5 { transform: translateX(300%); }
+        .phone.show-slide-3 .screen-1 { transform: translateX(-200%); } .phone.show-slide-3 .screen-2 { transform: translateX(-100%); } .phone.show-slide-3 .screen-3 { transform: translateX(0); } .phone.show-slide-3 .screen-4 { transform: translateX(100%); } .phone.show-slide-3 .screen-5 { transform: translateX(200%); }
+        .phone.show-slide-4 .screen-1 { transform: translateX(-300%); } .phone.show-slide-4 .screen-2 { transform: translateX(-200%); } .phone.show-slide-4 .screen-3 { transform: translateX(-100%); } .phone.show-slide-4 .screen-4 { transform: translateX(0); } .phone.show-slide-4 .screen-5 { transform: translateX(100%); }
+        .phone.show-slide-5 .screen-1 { transform: translateX(-400%); } .phone.show-slide-5 .screen-2 { transform: translateX(-300%); } .phone.show-slide-5 .screen-3 { transform: translateX(-200%); } .phone.show-slide-5 .screen-4 { transform: translateX(-100%); } .phone.show-slide-5 .screen-5 { transform: translateX(0); }
+
+        /* Верхняя панель с уровнем */
+        .top-ui { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .level { display: flex; flex-direction: column; align-items: flex-end; }
+        .progress-bar { width: 90px; height: 18px; background: #5c4033; border-radius: 20px; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.4); overflow: hidden; }
+        .progress-fill { width: 70%; height: 100%; background: linear-gradient(90deg, #ffd700, #ff4d4d); border-radius: 20px; transition: width 0.3s; }
+        .level-text { font-size: 16px; font-weight: 900; color: #4e342e; text-shadow: 0 2px 0 #FFD700; letter-spacing: 1px; margin-top: 5px; }
+
+        /* Кнопки по бокам (милые иконки) */
+        .side-btn { width: 42px; height: 42px; border: 3px solid #fff; border-radius: 15px; display: flex; justify-content: center; align-items: center; box-shadow: 0 6px 0 #a3785c, 0 10px 15px rgba(0,0,0,0.2); cursor: pointer; font-size: 18px; position: absolute; z-index: 10; }
+        .side-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #a3785c; }
+        .btn-left { left: 10px; }
+        .btn-right { right: 10px; }
+        .ach-btn { top: 65px; background: linear-gradient(145deg, #ffb300, #ff8f00); border-color: #d84315; }
+        .pass-btn { top: 115px; background: linear-gradient(145deg, #ffd700, #ffb300); border-color: #B8860B; }
+        .gift-btn { top: 165px; background: linear-gradient(145deg, #F8BBD0, #F06292); border-color: #C2185B; }
+        .mini-btn { top: 65px; background: linear-gradient(145deg, #A5D6A7, #66BB6A); border-color: #2E7D32; }
+        .airdrop-btn { top: 115px; background: linear-gradient(145deg, #90CAF9, #2196F3); border-color: #0D47A1; }
+        .weekly-btn { top: 165px; background: linear-gradient(145deg, #B39DDB, #7E57C2); border-color: #4527A0; }
+        .music-btn { top: 215px; background: linear-gradient(145deg, #B3E5FC, #4FC3F7); border-color: #0277BD; }
+
+        /* ... (Центр, Пчела, Ферма, Магазин, Арена, Модалки - структура сохранена, CSS классов остается как в последней версии) ... */
+        /* Дальше идут все стили карточек, магазина, фермы, арены и модалок из предыдущего кода */
+        /* Для избежания обрезания сохраняю все классы, добавив только изменения выше */
+        
+        .center-stage { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; cursor: pointer; user-select: none; }
+        .glow { position: absolute; top: 50%; left: 50%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,215,0,0.6) 40%, transparent 70%); transform: translate(-50%, -50%); border-radius: 50%; z-index: -1; animation: pulse 2s infinite alternate; }
+        @keyframes pulse { from { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); } to { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } }
+        .bee-wrap { filter: drop-shadow(10px 15px 8px rgba(0,0,0,0.4)); animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px) rotate(-5deg); } 50% { transform: translateY(-20px) rotate(5deg); } 100% { transform: translateY(0px) rotate(-5deg); } }
+        .sparkle { position: absolute; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; z-index: 20; animation: sparkle-fly 0.6s ease-out forwards; }
+        @keyframes sparkle-fly { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2); } }
+        .golden-bee { position: absolute; width: 70px; height: 70px; z-index: 25; cursor: pointer; animation: golden-float 2s ease-in-out infinite; filter: drop-shadow(0 0 15px #FFD700); }
+        @keyframes golden-float { 0% { transform: translateY(0) scale(1) rotate(-10deg); } 50% { transform: translateY(-20px) scale(1.2) rotate(10deg); } 100% { transform: translateY(0) scale(1) rotate(-10deg); } }
+        .pollen-particle { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #FFC107; z-index: 20; pointer-events: none; animation: pollen-fly 0.7s ease-out forwards; }
+        @keyframes pollen-fly { 0% { opacity: 1; transform: translate(0, 0); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)); } }
+        .left-clovers { position: absolute; bottom: 260px; left: 10px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2)); transform: rotate(-20deg); z-index: 2;}
+        .right-pot { position: absolute; bottom: 280px; right: 20px; width: 90px; height: 100px; background: linear-gradient(to bottom, #8b4513, #5c4033); border-radius: 20px 20px 40px 40px; box-shadow: 0 15px 20px rgba(0,0,0,0.4); z-index: 2; }
+        .pot-rim { width: 110px; height: 25px; background: #5c4033; border-radius: 15px; position: absolute; top: -15px; left: -10px; box-shadow: 0 5px 0 #3e2723; }
+        .pot-honey { position: absolute; top: 20px; left: 5px; width: 80px; height: 25px; background: #ffd700; border-radius: 0 0 20px 20px; border-bottom: 3px solid #d4a017; }
+        .bottom-panel { position: absolute; bottom: 60px; left: 15px; right: 15px; background: linear-gradient(to bottom, #d2a679, #8b5a2b); border-radius: 25px; padding: 15px; display: flex; justify-content: space-between; gap: 10px; box-shadow: 0 -10px 0 #6b3e1b, 0 20px 30px rgba(0,0,0,0.4); z-index: 10; }
+        .card { background: #f0e0c0; border: 3px solid #8b5a2b; border-radius: 15px; flex: 1; text-align: center; padding: 15px 5px 10px 5px; box-shadow: inset 0 -5px 0 rgba(139, 90, 43, 0.4); position: relative; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .card.click-card { border-color: #007bff; } .card.passive-card { border-color: #28a745; } .card.boost-card { border-color: #fd7e14; }
+        .card.can-buy { filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8)); background: linear-gradient(145deg, #ffffff, #f5e6cc); }
+        .card.cant-buy { filter: grayscale(0.8); opacity: 0.6; pointer-events: none; }
+        .card-title { font-size: 14px; color: #4e342e; font-weight: 700; margin-bottom: 5px; }
+        .card-value { font-size: 24px; color: #4e342e; text-shadow: 0 1px 0 #FFE082; font-weight: 900; line-height: 1.2; }
+        .card-cost { font-size: 10px; font-weight: 800; color: #fff; margin-top: 8px; padding: 2px 6px; border-radius: 10px; display: inline-block; }
+        .cost-click { background: #007bff; } .cost-passive { background: #28a745; } .cost-boost { background: #fd7e14; }
+        .card-icon { position: absolute; top: -15px; left: 10px; width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; border: 2px solid #fff; box-shadow: 0 2px 0 #8b5a2b; }
+        .icon-click { background: #007bff; } .icon-passive { background: #28a745; } .icon-boost { background: #fd7e14; }
+
+        /* Магазин (и добавляем Мутированного Деда) */
+        .shop-container { position: absolute; top: 60px; bottom: 40px; left: 50%; transform: translateX(-50%); width: 90%; overflow-y: auto; padding: 20px; z-index: 5; -webkit-overflow-scrolling: touch; }
+        .shop-container::-webkit-scrollbar { width: 0px; }
+        .shop-title { font-size: 34px; font-weight: 900; color: #4e342e; text-shadow: 0 2px 0 #FFD700; margin-bottom: 20px; }
+        .gold-display { font-weight: 900; color: #8b5a2b; font-size: 30px; margin-bottom: 10px; }
+        .armor-card { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.9); border: 3px solid #007bff; border-radius: 20px; padding: 10px; margin-bottom: 10px; box-shadow: 0 5px 0 #8b5a2b; cursor: pointer; transition: 0.3s; }
+        .armor-info { flex: 1; text-align: left; }
+        .armor-name { font-size: 16px; font-weight: 800; color: #4e342e; }
+        .armor-buff { font-size: 12px; color: #666; }
+        .armor-cost { background: #ffd700; color: #4e342e; padding: 5px 10px; border-radius: 15px; font-weight: 800; }
+        .stat-card { background: rgba(255, 255, 255, 0.8); border: 3px solid #8b5a2b; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 5px 0 #8b5a2b; }
+        .stat-label { font-size: 14px; color: #4e342e; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 36px; color: #8b5a2b; font-weight: 900; }
+        .prestige-btn { background: linear-gradient(145deg, #E1BEE7, #CE93D8); border: 4px solid #fff; border-radius: 20px; padding: 15px; color: #4A148C; font-weight: 900; font-size: 18px; cursor: pointer; box-shadow: 0 6px 0 #8E24AA, 0 10px 20px rgba(0,0,0,0.2); width: 100%; margin-bottom: 15px; transition: 0.3s; }
+        .prestige-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8E24AA; }
+        .prestige-btn:disabled { filter: grayscale(0.8); opacity: 0.5; pointer-events: none; }
+        .skin-card { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.9); border: 3px solid #8b5a2b; border-radius: 20px; padding: 10px; margin-bottom: 10px; box-shadow: 0 5px 0 #8b5a2b; cursor: pointer; transition: 0.3s; }
+        .skin-action { background: #8b5a2b; color: white; padding: 5px 10px; border-radius: 15px; font-weight: 800; font-size: 12px; }
+        .skin-action.equipped { background: #28a745; }
+        
+        /* ... (Стили Фермы, Арены, Модалок сохранены полностью как в последней версии) ... */
+        .farm-container { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 95%; height: 80%; z-index: 5; text-align: center; }
+        .farm-title { font-size: 34px; font-weight: 900; color: #4e342e; text-shadow: 0 2px 0 #FFD700; margin-bottom: 10px; }
+        .farm-area { position: relative; height: 50%; background: rgba(255, 255, 255, 0.5); border: 3px solid #8b5a2b; border-radius: 25px; box-shadow: 0 5px 0 #8b5a2b; margin-bottom: 15px; overflow: hidden; }
+        .grandpa-zone { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; }
+        .grandpa-svg { width: 100px; height: 120px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3)); }
+        .grandpa-name { font-size: 12px; color: #4e342e; font-weight: 800; text-transform: uppercase; margin-top: 5px; }
+        .hive-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 20px; }
+        .hive-slot { width: 70px; height: 70px; background: linear-gradient(145deg, #f5e6cc, #e8d5b7); border: 2px solid #8b5a2b; border-radius: 15px; display: flex; justify-content: center; align-items: center; font-size: 40px; box-shadow: inset 0 -3px 0 rgba(139, 90, 43, 0.4); }
+        .farm-ui { display: flex; justify-content: space-between; gap: 10px; }
+        .farm-btn { background: #ffd700; border: 3px solid #fff; border-radius: 15px; padding: 10px; flex: 1; font-weight: 800; color: #4e342e; cursor: pointer; box-shadow: 0 5px 0 #B8860B; transition: 0.2s; } .farm-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #B8860B; } .farm-btn.cant-buy { filter: grayscale(0.8); opacity: 0.6; } .farm-info { font-size: 14px; font-weight: 800; color: #4e342e; margin-top: 5px; }
+        .arena-container { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 95%; height: 80%; z-index: 5; text-align: center; }
+        .arena-title { font-size: 32px; font-weight: 900; color: #4e342e; text-shadow: 0 2px 0 #FFD700; margin-bottom: 10px; }
+        .location-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .loc-btn { padding: 8px 15px; background: #5c4033; color: #fff; border: 3px solid #fff; border-radius: 15px; font-weight: 800; cursor: pointer; }
+        .loc-btn.active { background: #ffd700; color: #4e342e; }
+        .bot-select { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .bot-card { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.9); border: 3px solid #8b5a2b; border-radius: 20px; padding: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 0 #8b5a2b; }
+        .bot-icon { width: 80px; height: 80px; margin-right: 10px; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); }
+        .bot-info { flex: 1; text-align: left; } .bot-name { font-size: 18px; font-weight: 800; color: #4e342e; } .bot-stats { font-size: 12px; color: #666; font-weight: 700; }
+        .battle-field { background: rgba(255, 255, 255, 0.7); border: 3px solid #8b5a2b; border-radius: 25px; padding: 15px; box-shadow: 0 5px 0 #8b5a2b; position: relative; height: 300px; }
+        .hp-bar-container { width: 90%; height: 18px; background: #5c4033; border-radius: 20px; border: 2px solid #fff; overflow: hidden; margin: 5px auto; }
+        .hp-bar { height: 100%; background: linear-gradient(90deg, #4caf50, #ff4d4d); transition: width 0.3s; }
+        .combatants { display: flex; justify-content: space-between; align-items: center; position: absolute; bottom: 20px; left: 20px; right: 20px; }
+        .combatant { display: flex; flex-direction: column; align-items: center; }
+        .combat-bee { width: 120px; height: 120px; }
+        .combat-name { font-size: 14px; font-weight: 800; color: #4e342e; margin-top: 5px; }
+        .fight-log { position: absolute; top: 10px; left: 0; right: 0; text-align: center; font-size: 14px; font-weight: 800; color: #d84315; }
+        .fight-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .fight-btn { flex: 1; border: 3px solid #fff; border-radius: 15px; padding: 12px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.3); transition: 0.2s; color: white; }
+        .btn-atk { background: #e53935; } .btn-def { background: #1e88e5; } .btn-crit { background: #fb8c00; }
+        .ref-container { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 90%; z-index: 5; text-align: center; }
+        .ref-code-box { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 3px solid #8b5a2b; border-radius: 20px; padding: 10px; margin-bottom: 20px; box-shadow: 0 5px 0 #8b5a2b; }
+        .ref-code { font-weight: 900; font-size: 24px; color: #8b5a2b; }
+        .ref-copy { background: #ffd700; border: none; border-radius: 10px; padding: 8px 12px; font-weight: 800; cursor: pointer; color: #4e342e; }
+        .ref-btn { background: #ffd700; border: 3px solid #fff; border-radius: 20px; padding: 15px; font-weight: 900; font-size: 18px; cursor: pointer; box-shadow: 0 6px 0 #B8860B; margin-bottom: 15px; }
+        .mini-modal { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.9); z-index: 998; display: none; justify-content: center; align-items: center; }
+        .mini-inner { background: linear-gradient(180deg, #fff5cc, #ffd700); border: 5px solid #fff; border-radius: 30px; width: 90%; height: auto; padding: 20px; position: relative; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .mini-close { position: absolute; top: 10px; right: 15px; font-size: 30px; color: #4e342e; font-weight: 900; cursor: pointer; }
+        .game-tabs { display: flex; justify-content: space-around; margin-bottom: 20px; }
+        .game-tab { padding: 10px 20px; border-radius: 20px; background: #8b5a2b; color: #fff; font-weight: 800; cursor: pointer; }
+        .game-tab.active { background: #4CAF50; }
+        .game-content { display: none; }
+        .game-content.active { display: block; }
+        .wheel-circle { width: 150px; height: 150px; border-radius: 50%; background: #fff; border: 6px solid #8b5a2b; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: 800; transform: rotate(0deg); transition: transform 0.5s ease-out; }
+        .mine-grid { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+        .mine-rock { width: 60px; height: 60px; font-size: 40px; background: #fff; border: 2px solid #8b5a2b; border-radius: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        .pinco-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .slide-tabs { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 3px; z-index: 20; }
+        .tab-btn { padding: 6px 8px; border-radius: 20px; background: #5c4033; color: #fff; border: 3px solid #fff; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 4px 0 #3e2723; transition: 0.2s; }
+        .tab-btn.active { background: #ffd700; color: #4e342e; }
+        .floating-number { position: absolute; top: 10px; left: 50%; transform: translate(-50%, 0) rotate(-5deg); font-size: 34px; font-weight: 900; color: #4e342e; text-shadow: 0 2px 0 #FFD700, 0 4px 8px rgba(0,0,0,0.3); pointer-events: none; z-index: 20; animation: floatUp 1.2s ease-out forwards; opacity: 1; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0) scale(1) rotate(-5deg); } 100% { opacity: 0; transform: translate(-50%, -100px) scale(1.4) rotate(5deg); } }
+        .floating-number.hot { color: #d84315; text-shadow: 0 2px 0 #FFC107, 0 4px 10px rgba(216, 67, 21, 0.5); font-size: 48px; }
+        .beep-pop { animation: pop 0.3s ease-out; } @keyframes pop { 0% { transform: scale(0.95); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .promo-modal, .weekly-modal, .airdrop-modal { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 998; display: none; justify-content: center; align-items: center; }
+        .promo-inner, .weekly-inner, .airdrop-inner { background: linear-gradient(180deg, #fff5cc, #ffd700); border: 5px solid #fff; border-radius: 30px; width: 90%; padding: 20px; position: relative; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .promo-close, .weekly-close, .airdrop-close { position: absolute; top: 10px; right: 15px; font-size: 30px; color: #4e342e; font-weight: 900; cursor: pointer; }
+        .promo-input { width: 80%; padding: 10px; border: 3px solid #8b5a2b; border-radius: 10px; font-family: inherit; font-weight: 800; text-align: center; margin-bottom: 15px; font-size: 18px; }
+        .promo-btn, .weekly-claim-btn, .airdrop-connect-btn { background: #28a745; border: 3px solid #fff; color: white; padding: 10px 20px; border-radius: 15px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 4px 0 #1a7431; margin-top: 10px; }
+        .airdrop-connect-btn { background: #2196F3; box-shadow: 0 4px 0 #0D47A1; }
+        .pass-premium-box { background: linear-gradient(145deg, #FFD700, #FFA500); border: 3px solid #FFD700; border-radius: 15px; padding: 10px; margin: 10px 0; box-shadow: 0 5px 0 #B8860B, 0 0 15px rgba(255, 215, 0, 0.7); }
+        .pass-premium-title { font-weight: 900; color: #4e342e; font-size: 18px; }
+        .pass-premium-desc { font-size: 14px; color: #4e342e; font-weight: 700; }
+        .pass-premium-btn { background: #4e342e; color: #FFD700; border: none; padding: 8px 15px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 5px; }
+        .pass-premium-btn:disabled { opacity: 0.5; cursor: default; }
+        .weekly-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+        .weekly-day { background: #fff8dc; border: 2px solid #ccc; border-radius: 10px; padding: 10px; text-align: center; font-weight: 800; font-size: 12px; opacity: 0.5; }
+        .weekly-day.active { border-color: #4CAF50; opacity: 1; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); background: #E8F5E9; }
+        .weekly-day.claimed { border-color: #999; opacity: 0.3; }
+        .weekly-reward-val { font-size: 16px; font-weight: 900; color: #d84315; display: block; margin-top: 5px; }
+        .offline-modal { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); z-index: 200; display: none; justify-content: center; align-items: center; }
+        .offline-modal-content { background: linear-gradient(180deg, #fff5cc, #ffd700); border: 5px solid #fff; border-radius: 30px; padding: 30px; text-align: center; width: 80%; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .offline-title { font-size: 28px; font-weight: 900; color: #4e342e; margin-bottom: 5px; }
+        .offline-reward { font-size: 48px; font-weight: 900; color: #d84315; text-shadow: 0 2px 0 #FFD700; margin-bottom: 20px; }
+        .offline-btn { background: #28a745; border: 3px solid #fff; color: white; padding: 10px 20px; border-radius: 20px; font-weight: 800; font-size: 20px; cursor: pointer; box-shadow: 0 5px 0 #1a7431; transition: 0.2s; }
+        .daily-modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 100; display: flex; justify-content: center; align-items: center; }
+        .daily-modal { background: linear-gradient(180deg, #fff5cc, #ffd700); border: 5px solid #fff; border-radius: 30px; padding: 30px; text-align: center; width: 80%; box-shadow: 0 10px 40px rgba(0,0,0,0.5); position: relative; }
+        .daily-close { position: absolute; top: 10px; right: 15px; font-size: 24px; color: #8b5a2b; cursor: pointer; font-weight: 900; }
+        .daily-reward { font-size: 48px; font-weight: 900; color: #d84315; text-shadow: 0 2px 0 #FFD700; margin-bottom: 20px; }
+        .daily-btn { background: #28a745; border: 3px solid #fff; color: white; padding: 10px 20px; border-radius: 20px; font-weight: 800; font-size: 20px; cursor: pointer; box-shadow: 0 5px 0 #1a7431; transition: 0.2s; }
+        .pass-modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.9); z-index: 999; display: none; justify-content: center; align-items: center; }
+        .pass-modal { background: linear-gradient(180deg, #fff5cc, #ffd700); border: 5px solid #fff; border-radius: 30px; width: 90%; height: 85%; position: relative; display: flex; flex-direction: column; align-items: center; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .pass-close { position: absolute; top: 10px; right: 15px; font-size: 32px; color: #4e342e; font-weight: 900; cursor: pointer; z-index: 10; background: #fff; width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid #8b5a2b; box-shadow: 0 3px 0 #8b5a2b; }
+        .pass-header { text-align: center; margin-top: 40px; margin-bottom: 10px; width: 100%; }
+        .pass-title { font-size: 32px; font-weight: 900; color: #4e342e; text-shadow: 0 2px 0 #FFD700; }
+        .pass-progress-bar { width: 90%; height: 18px; background: #5c4033; border-radius: 20px; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.4); overflow: hidden; margin: 15px 0 5px 0; }
+        .pass-progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ffd700, #ff4d4d); }
+        .pass-list { flex: 1; width: 90%; overflow-y: auto; padding: 10px; margin-bottom: 10px; background: rgba(255, 255, 255, 0.5); border-radius: 15px; border: 2px solid #8b5a2b; }
+        .pass-item { display: flex; align-items: center; justify-content: space-between; background: #f0e0c0; border-radius: 10px; padding: 10px; margin-bottom: 8px; border: 2px solid #8b5a2b; }
+        .pass-num { font-weight: 900; font-size: 20px; color: #8b5a2b; width: 40px; text-align: center; }
+        .pass-reward-btn { background: #ffd700; border: 2px solid #8b5a2b; color: #4e342e; padding: 5px 10px; border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 12px; }
+        .phone.bee-fire .bee-body { fill: #E53935; } .phone.bee-fire .bee-stripe { fill: #111; }
+    </style>
+</head>
+<body>
+
+<div class="phone" id="phoneApp">
+    <div class="hex-bg"></div>
+
+    <!-- СЛАЙД 1 -->
+    <div class="screen screen-1">
+        
+        <div class="top-ui">
+            <div class="level"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="level-text" id="levelText">LEVEL 1</div></div>
+        </div>
+
+        <!-- Кнопки по бокам от пчелы -->
+        <div class="side-btn btn-left ach-btn" onclick="openAchievements()" title="Достижения">🏆</div>
+        <div class="side-btn btn-left pass-btn" onclick="openPassModal()" title="Пропуск">📜</div>
+        <div class="side-btn btn-left gift-btn" onclick="openPromo()" title="Промокоды">🎁</div>
+
+        <div class="side-btn btn-right mini-btn" onclick="openMiniGame()" title="Игры">🎲</div>
+        <div class="side-btn btn-right airdrop-btn" onclick="openAirdrop()" title="AirDrop">💎</div>
+        <div class="side-btn btn-right weekly-btn" onclick="openWeekly()" title="Неделя">📅</div>
+        <div class="side-btn btn-right music-btn" onclick="toggleMusic()" title="Музыка">🎵</div>
+
+        <div class="left-clovers">🍀🍀</div>
+        <div class="right-pot"><div class="pot-rim"></div><div class="pot-honey"></div></div>
+
+        <div class="center-stage" id="beeButton" onclick="tapBee(event)">
+            <div class="glow"></div>
+            <div class="bee-wrap" id="beeWrap">
+                <svg width="140" height="140" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse class="bee-wing" cx="8" cy="8" rx="3" ry="5" fill="white" opacity="0.8" transform="rotate(-30 8 8)"/><ellipse class="bee-wing" cx="16" cy="8" rx="3" ry="5" fill="white" opacity="0.8" transform="rotate(30 16 8)"/><ellipse class="bee-body" cx="12" cy="14" rx="6" ry="9" fill="#FFC107"/><path class="bee-stripe" d="M7 12C7 12 10 13 15 12" stroke="#333" stroke-width="2"/><path class="bee-stripe" d="M7 16C7 16 10 17 15 16" stroke="#333" stroke-width="2"/><path class="bee-stripe" d="M8 20C8 20 10 21 13 20" stroke="#333" stroke-width="2"/><circle class="bee-eye" cx="10" cy="9" r="1.5" fill="#333"/><circle class="bee-eye" cx="14" cy="9" r="1.5" fill="#333"/><path class="bee-stripe" d="M10 12C10 12 12 13 14 12" stroke="#333" stroke-width="1.5" stroke-linecap="round"/><path d="M12 23L13 25" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="bottom-panel">
+            <div class="card click-card" id="cardClick" onclick="buyClickUpgrade()"><div class="card-icon icon-click">💧</div><div class="card-title">Сила клика</div><div class="card-value" id="honeyCount">0 c</div><div class="card-cost cost-click" id="costClick">300</div></div>
+            <div class="card passive-card" id="cardPassive" onclick="buyPassiveUpgrade()"><div class="card-icon icon-passive">⏱️</div><div class="card-title">Доход в сек</div><div class="card-value" id="xpCount">+0</div><div class="card-cost cost-passive" id="costPassive">500</div></div>
+            <div class="card boost-card" id="cardBoost" onclick="buyEnergyUpgrade()"><div class="card-icon icon-boost">⚡</div><div class="card-title">Скорость</div><div class="card-value" id="energyCount">x1</div><div class="card-cost cost-boost" id="costEnergy">1000</div></div>
+        </div>
+    </div>
+
+    <!-- СЛАЙД 2: Магазин -->
+    <div class="screen screen-2">
+        <div class="shop-container">
+            <div class="shop-title">Улучшения</div>
+            <button class="prestige-btn" id="prestigeBtn" onclick="doPrestige()">Престиж (Нужен 50 ур.)</button>
+            <div class="gold-display">🪙 Золото: <span id="goldDisplay">0</span></div>
+            <div class="armor-card" id="weaponCard" onclick="buyGear('weapon')"><div class="armor-icon">🗡️</div><div class="armor-info"><div class="armor-name">Меч Пчелы</div><div class="armor-buff" id="weaponBuff">+0 к Атаке</div></div><div class="armor-cost" id="weaponCost">10 🪙</div></div>
+            <div class="armor-card" id="shieldCard" onclick="buyGear('shield')"><div class="armor-icon">🛡️</div><div class="armor-info"><div class="armor-name">Щит Пчелы</div><div class="armor-buff" id="shieldBuff">+0 к Защите</div></div><div class="armor-cost" id="shieldCost">10 🪙</div></div>
+            <div class="armor-card" id="armorCard" onclick="buyGear('armor')"><div class="armor-icon">🦺</div><div class="armor-info"><div class="armor-name">Броня Пчелы</div><div class="armor-buff" id="armorBuff">+0 к Макс. HP</div></div><div class="armor-cost" id="armorCost">10 🪙</div></div>
+            
+            <div class="stat-card"><div class="stat-label">Всего собрано меда</div><div class="stat-value" id="totalHoneyStats">0 c</div></div>
+            <div class="stat-card"><div class="stat-label">Всего кликов</div><div class="stat-value" id="totalClicksStats">0</div></div>
+            
+            <div class="shop-title" style="font-size: 24px; margin-top: 10px;">Скины</div>
+            <div class="skin-card" id="skinGold" onclick="buyOrEquipSkin('gold')"><div class="skin-icon">✨</div><div class="skin-info"><div class="skin-name">Золотая пчела</div><div class="skin-buff">+5 к силе клика</div></div><div class="skin-action" id="skinGoldAction">Купить (15к)</div></div>
+            <div class="skin-card" id="skinCyber" onclick="buyOrEquipSkin('cyber')"><div class="skin-icon">🤖</div><div class="skin-info"><div class="skin-name">Кибер-пчела</div><div class="skin-buff">+20% к пассивному доходу</div></div><div class="skin-action" id="skinCyberAction">Купить (40к)</div></div>
+            <div class="skin-card" id="skinNinja" onclick="buyOrEquipSkin('ninja')"><div class="skin-icon">🥷</div><div class="skin-info"><div class="skin-name">Пчела-ниндзя</div><div class="skin-buff">+1 сек к времени комбо</div></div><div class="skin-action" id="skinNinjaAction">Купить (100к)</div></div>
+            <div class="skin-card" id="queenCard" onclick="buyQueen()"><div class="skin-icon">👑</div><div class="skin-info"><div class="skin-name">Королева Пчела</div><div class="skin-buff">Увеличивает ВЕСЬ доход x2</div></div><div class="skin-action" id="queenCost">50 000 c</div></div>
+            
+            <div class="shop-title" style="font-size: 24px; margin-top: 10px;">Герои</div>
+            <!-- НОВЫЙ ПЕРСОНАЖ: МУТИРОВАННЫЙ ДЕД -->
+            <div class="skin-card" id="mutantGrandpaCard" onclick="buyMutantGrandpa()">
+                <div class="skin-icon">🧟</div>
+                <div class="skin-info">
+                    <div class="skin-name">Старый Пердун</div>
+                    <div class="skin-buff">Дает x1.5 к доходу Дедушки</div>
+                </div>
+                <div class="skin-action" id="mutantGrandpaAction">Купить (150к)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- СЛАЙД 3: Ферма -->
+    <div class="screen screen-3">
+        <div class="farm-container">
+            <div class="farm-title">Медовая Ферма</div>
+            <div class="farm-area">
+                <div class="grandpa-zone">
+                    <svg class="grandpa-svg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="30" y="70" width="40" height="40" rx="10" fill="#8B4513"/><circle cx="50" cy="40" r="20" fill="#FFCC99"/><path d="M30 50 Q50 80 70 50 Z" fill="#F5F5DC"/><circle cx="50" cy="45" r="5" fill="#FFB380"/><rect x="25" y="20" width="50" height="15" rx="5" fill="#8B4513"/><rect x="35" y="5" width="30" height="15" rx="5" fill="#8B4513"/><circle cx="40" cy="40" r="6" stroke="#333" stroke-width="2" fill="none"/><circle cx="60" cy="40" r="6" stroke="#333" stroke-width="2" fill="none"/><line x1="46" y1="40" x2="54" y2="40" stroke="#333" stroke-width="2"/><rect x="75" y="80" width="20" height="15" fill="#808080"/><ellipse cx="85" cy="80" rx="10" ry="3" fill="#C0C0C0"/><rect x="65" y="90" width="15" height="5" rx="2" fill="#FFCC99"/>
+                    </svg>
+                    <div class="grandpa-name" id="grandpaName">Старый Пердун</div>
+                </div>
+                <div class="hive-grid" id="hiveGrid"></div>
+            </div>
+            <div class="farm-ui"><button class="farm-btn" id="buyHiveBtn" onclick="buyHive()">Купить Улей 🐝</button><button class="farm-btn" id="upgradeGrandpaBtn" onclick="upgradeGrandpa()">Ведро Деда 🪣</button></div>
+            <div class="farm-info" id="farmInfo">Ульев: 0 | Доход фермы: +0/сек</div>
+        </div>
+    </div>
+
+    <!-- СЛАЙД 4: Арена -->
+    <div class="screen screen-4">
+        <div class="arena-container">
+            <div class="arena-title">Пчелиная Арена</div>
+            <div class="location-selector">
+                <div class="loc-btn active" onclick="selectLocation(1)">🌼 Луг</div>
+                <div class="loc-btn" onclick="selectLocation(2)">🌲 Лес</div>
+                <div class="loc-btn" onclick="selectLocation(3)">🌿 Сад</div>
+                <div class="loc-btn" onclick="selectLocation(4)">🏔️ Горы</div>
+                <div class="loc-btn" onclick="selectLocation(5)">☁️ Небо</div>
+            </div>
+            <div id="botList"></div>
+            <div class="battle-area" id="battleArea" style="display:none;">
+                <div class="battle-field">
+                    <div class="fight-log" id="fightLog">Нажми на кнопку!</div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                        <div style="flex:1; text-align:center;"><div style="font-weight:800; color:#4e342e; margin-bottom:5px;">ТЫ</div><div class="hp-bar-container"><div class="hp-bar" id="playerHPBar"></div></div></div>
+                        <div style="flex:1; text-align:center;"><div style="font-weight:800; color:#4e342e; margin-bottom:5px;">ВРАГ</div><div class="hp-bar-container"><div class="hp-bar" id="botHPBar"></div></div></div>
+                    </div>
+                    <div class="combatants">
+                        <div class="combatant"><svg class="combat-bee" id="playerCombatBee" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="8" cy="8" rx="3" ry="5" fill="white" opacity="0.8" transform="rotate(-30 8 8)"/><ellipse cx="16" cy="8" rx="3" ry="5" fill="white" opacity="0.8" transform="rotate(30 16 8)"/><ellipse class="bee-body" cx="12" cy="14" rx="6" ry="9" fill="#FFC107"/><path d="M7 12C7 12 10 13 15 12" stroke="#333" stroke-width="2"/><path d="M7 16C7 16 10 17 15 16" stroke="#333" stroke-width="2"/><circle cx="10" cy="9" r="1.5" fill="#333"/><circle cx="14" cy="9" r="1.5" fill="#333"/></svg><div class="combat-name" id="playerName">Твоя пчела</div></div>
+                        <div class="combatant"><svg class="combat-bee" id="botCombatBee" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="8" cy="8" rx="3" ry="5" fill="#666" opacity="0.8" transform="rotate(-30 8 8)"/><ellipse cx="16" cy="8" rx="3" ry="5" fill="#666" opacity="0.8" transform="rotate(30 16 8)"/><ellipse class="bee-body" cx="12" cy="14" rx="6" ry="9" fill="#FF5722"/><path d="M7 12C7 12 10 13 15 12" stroke="#111" stroke-width="2"/><path d="M7 16C7 16 10 17 15 16" stroke="#111" stroke-width="2"/><circle cx="10" cy="9" r="1.5" fill="#333"/><circle cx="14" cy="9" r="1.5" fill="#333"/></svg><div class="combat-name" id="botName">Рыжая</div></div>
+                    </div>
+                </div>
+                <div class="fight-buttons"><button class="fight-btn btn-atk" id="btnAtk" onclick="playerAttack()">⚔️ Атака</button><button class="fight-btn btn-def" id="btnDef" onclick="playerDefend()">🛡️ Защита</button><button class="fight-btn btn-crit" id="btnCrit" onclick="playerCrit()">💥 Крит</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- СЛАЙД 5: Рефералы -->
+    <div class="screen screen-5">
+        <div class="ref-container">
+            <div class="ref-title">Пчелиная Семья</div>
+            <div class="ref-sub">Приглашай друзей и получай награды!</div>
+            <div class="ref-code-box"><div class="ref-code" id="myCode">CODE</div><button class="ref-copy" onclick="copyRefCode()">📋 Скопировать</button></div>
+            <div class="ref-friends">Приглашено: <span id="refCount">0</span> друзей</div>
+            <button class="ref-btn" onclick="copyRefCode()">Скопировать ссылку</button>
+            <div id="refMsg" style="margin-top: 10px; font-weight: 800; color: #4CAF50;"></div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКИ -->
+    <div class="airdrop-modal" id="airdropModal">
+        <div class="airdrop-inner">
+            <div class="airdrop-close" onclick="closeAirdrop()">×</div>
+            <div style="font-size: 24px; font-weight:900; margin-bottom:20px;">🪂 AirDrop</div>
+            <div style="font-size: 18px; margin-bottom:20px; color:#d84315; font-weight:800;">Зачем ты сюда лезешь, а ну-ка отдай свой кошелек.</div>
+            <input type="text" class="promo-input" id="tonAddressInput" placeholder="Вставь адрес TON кошелька">
+            <button class="airdrop-connect-btn" onclick="connectWallet()">Привязать кошелек</button>
+            <div id="walletMsg" style="margin-top: 15px; font-weight: 800; color: #4CAF50;"></div>
+        </div>
+    </div>
+
+    <div class="promo-modal" id="promoModal">
+        <div class="promo-inner">
+            <div class="promo-close" onclick="closePromo()">×</div>
+            <div style="font-size: 30px; font-weight:900; margin-bottom: 20px;">🎁 Промокод</div>
+            <input type="text" class="promo-input" id="promoInput" placeholder="ВВЕДИ КОД">
+            <button class="promo-btn" onclick="applyPromo()">Активировать</button>
+            <div id="promoMsg" style="margin-top: 15px; font-weight: 800; color: #4CAF50;"></div>
+        </div>
+    </div>
+
+    <div class="weekly-modal" id="weeklyModal">
+        <div class="weekly-inner">
+            <div class="weekly-close" onclick="closeWeekly()">×</div>
+            <div style="font-size: 24px; font-weight:900; margin-bottom: 20px;">📅 7-дневные награды</div>
+            <div class="weekly-grid" id="weeklyGrid"></div>
+            <button class="weekly-claim-btn" id="weeklyClaimBtn" onclick="claimWeekly()">Забрать награду</button>
+        </div>
+    </div>
+
+    <div class="mini-modal" id="miniModal">
+        <div class="mini-inner">
+            <div class="mini-close" onclick="closeMiniGame()">×</div>
+            <div class="mini-title">🎲 Развлекательный центр</div>
+            <div class="game-tabs">
+                <div class="game-tab active" onclick="switchGameTab('wheel')">🎡</div>
+                <div class="game-tab" onclick="switchGameTab('mine')">⛏️</div>
+                <div class="game-tab" onclick="switchGameTab('pinco')">🎰</div>
+            </div>
+            <div class="game-content active" id="game-wheel">
+                <div class="wheel-circle" id="wheelResult">Нажми!</div>
+                <button class="farm-btn" onclick="spinWheel()">Крутить (50 c)</button>
+            </div>
+            <div class="game-content" id="game-mine">
+                <div class="mine-grid">
+                    <div class="mine-rock" onclick="mineRock(0)">🪨</div>
+                    <div class="mine-rock" onclick="mineRock(1)">🪨</div>
+                    <div class="mine-rock" onclick="mineRock(2)">🪨</div>
+                </div>
+                <button class="farm-btn" onclick="startMine()">Начать копать (100 c)</button>
+            </div>
+            <div class="game-content" id="game-pinco">
+                <div class="pinco-grid" id="pincoGrid">
+                    <div class="mine-rock">❓</div><div class="mine-rock">❓</div><div class="mine-rock">❓</div>
+                    <div class="mine-rock">❓</div><div class="mine-rock">❓</div><div class="mine-rock">❓</div>
+                    <div class="mine-rock">❓</div><div class="mine-rock">❓</div><div class="mine-rock">❓</div>
+                </div>
+                <button class="farm-btn" onclick="playPinco()">Открыть (200 c)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="offline-modal" id="offlineModal">
+        <div class="offline-modal-content">
+            <div class="offline-title">Дедушка Мёд скучал!</div>
+            <div style="font-size: 18px; margin-bottom: 10px;">Пока тебя не было, он в очках собрал:</div>
+            <div class="offline-reward" id="offlineReward">0 c</div>
+            <button class="offline-btn" onclick="claimOffline()">Забрать</button>
+        </div>
+    </div>
+
+    <div class="pass-modal-overlay" id="passModal">
+        <div class="pass-modal">
+            <div class="pass-close" onclick="closePassModal()">×</div>
+            <div class="pass-header">
+                <div class="pass-title">БОЕВОЙ ПРОПУСК</div>
+                <div class="pass-level-text" id="passLevelText">Уровень 0 / 100</div>
+                <div class="pass-progress-bar"><div class="pass-progress-fill" id="passProgressFill"></div></div>
+                <div class="pass-premium-box" id="passPremiumBox">
+                    <div class="pass-premium-title">👑 Элитный Пропуск</div>
+                    <div class="pass-premium-desc">Все награды x2</div>
+                    <button class="pass-premium-btn" id="passBuyBtn" onclick="buyPassPremium()">Купить за 2.2 TON</button>
+                </div>
+            </div>
+            <div class="pass-list" id="passList"></div>
+        </div>
+    </div>
+
+    <div class="pass-modal-overlay" id="achModal"><div class="pass-modal"><div class="pass-close" onclick="closeAchievements()">×</div><div class="pass-header"><div class="pass-title">Достижения</div><div class="pass-progress-bar"><div class="pass-progress-fill" id="achProgressFill"></div></div><div class="pass-level-text" id="achCountText">0 / 75</div></div><div class="pass-list" id="achList"></div></div></div>
+
+    <div class="slide-tabs">
+        <div class="tab-btn active" id="tab1" onclick="goToSlide(1)">Игра</div>
+        <div class="tab-btn" id="tab2" onclick="goToSlide(2)">Магазин</div>
+        <div class="tab-btn" id="tab3" onclick="goToSlide(3)">Ферма</div>
+        <div class="tab-btn" id="tab4" onclick="goToSlide(4)">Арена</div>
+        <div class="tab-btn" id="tab5" onclick="goToSlide(5)">Друзья</div>
+    </div>
+
+    <div class="daily-modal-overlay" id="dailyModal"><div class="daily-modal"><div class="daily-close" onclick="closeDailyModal()">×</div><div class="daily-title">Ежедневная награда!</div><div class="daily-reward" id="dailyRewardAmount">+500 c</div><button class="daily-btn" onclick="claimDailyReward()">Забрать</button></div></div>
+</div>
+
+<script>
+    const SERVER_URL = "https://bee-server-b62z.onrender.com";
+
+    // Инициализация TON
+    let tonConnectUI = null;
+    try {
+        if (typeof TON_CONNECT_UI !== 'undefined') {
+            tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: SERVER_URL + '/tonconnect-manifest.json', buttonRootId: 'app' });
+        }
+    } catch (e) {}
+
+    const save = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} };
+    const load = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch (e) { return fallback; } };
+
+    const BOT_USERNAME = "YOUR_BOT_USERNAME";
+    let honey = load('honey', 0); let goldCoins = load('goldCoins', 0); let clickPower = load('clickPower', 1); let passiveRate = load('passiveRate', 0);
+    let level = load('level', 1); let xp = load('xp', 0); let xpNeeded = load('xpNeeded', 100); let totalClicks = load('totalClicks', 0);
+    let totalHoneyEarned = load('totalHoneyEarned', 0); let hasQueen = load('hasQueen', false); let upgradeCostClick = load('costClick', 300); let upgradeCostPassive = load('costPassive', 500); let upgradeCostEnergy = load('costEnergy', 1000);
+    let globalMultiplier = hasQueen ? 2 : 1; let pollen = load('pollen', 0); let prestigeMult = 1 + (pollen * 0.5); let weaponLvl = load('weaponLvl', 0); let shieldLvl = load('shieldLvl', 0); let armorLvl = load('armorLvl', 0);
+    
+    // ИСПРАВЛЕНИЕ ФЕРМЫ: теперь можно покупать больше 2 ульев
+    let hiveCount = load('hiveCount', 0); let grandpaLevel = load('grandpaLevel', 1); let mutantGrandpa = load('mutantGrandpa', false);
+    let hiveCost = 1000 * Math.pow(2, hiveCount); let grandpaCost = 500 * Math.pow(2.5, grandpaLevel - 1);
+    let refCount = load('refCount', 0); let achClaimed = load('achClaimed', []); let maxComboReached = load('maxComboReached', 0); let claimedPromos = load('claimedPromos', []);
+    let weeklyDay = load('weeklyDay', 0); let lastWeeklyDate = load('lastWeeklyDate', ''); let weeklyClaimed = load('weeklyClaimed', false); let connectedWallet = load('tonWallet', '');
+
+    const skins = {
+        gold: { cost: 15000, owned: load('skinGold', false), equipped: load('skinGoldEq', false) },
+        cyber: { cost: 40000, owned: load('skinCyber', false), equipped: load('skinCyberEq', false) },
+        ninja: { cost: 100000, owned: load('skinNinja', false), equipped: load('skinNinjaEq', false) },
+        fire: { cost: 0, owned: load('skinFire', false), equipped: load('skinFireEq', false) }
+    };
+
+    let combo = 0; let comboTimer = null;
+    const seasonDays = 30 * 24 * 60 * 60 * 1000; let seasonStart = load('seasonStart', Date.now());
+    if (Date.now() - seasonStart > seasonDays) { save('seasonStart', Date.now()); save('passLevel', 0); save('passXP', 0); save('passPremium', false); save('passClaimed', []); }
+    let passLevel = load('passLevel', 0); let passXP = load('passXP', 0); let passPremium = load('passPremium', false); let passClaimed = load('passClaimed', []);
+    const passXPNeeded = 100; const passMaxLevel = 100;
+    const currentDate = new Date().toDateString(); const lastRewardDate = load('lastReward', null); const dailyStreak = load('dailyStreak', 0);
+
+    function showDailyModal() {
+        if (lastRewardDate !== currentDate) { document.getElementById('dailyModal').style.display = 'flex'; let reward = 500 * Math.pow(2, dailyStreak); document.getElementById('dailyRewardAmount').textContent = '+' + reward + ' c'; }
+        else { document.getElementById('dailyModal').style.display = 'none'; }
+    }
+    function claimDailyReward() { let reward = 500 * Math.pow(2, dailyStreak); honey += reward; save('honey', honey); save('dailyStreak', dailyStreak + 1); save('lastReward', currentDate); playSound('upgrade'); document.getElementById('dailyModal').style.display = 'none'; updateUI(); }
+    function closeDailyModal() { document.getElementById('dailyModal').style.display = 'none'; }
+    showDailyModal();
+
+    // ПРОМОКОДЫ
+    function openPromo() { document.getElementById('promoModal').style.display = 'flex'; } function closePromo() { document.getElementById('promoModal').style.display = 'none'; }
+    function applyPromo() {
+        let code = document.getElementById('promoInput').value.trim().toUpperCase();
+        let promoCodes = { 'BEE100': { reward: 1000, type: 'honey' }, 'HONEY': { reward: 50, type: 'gold' }, 'QUEEN': { reward: 10000, type: 'honey' }, '@HUPER_W': { reward: 30000, type: 'honey' }, '@HUPER_WW': { reward: 30000, type: 'honey' } };
+        if (claimedPromos.includes(code)) { document.getElementById('promoMsg').textContent = "Этот код уже использован!"; document.getElementById('promoMsg').style.color = "#d84315"; return; }
+        if (promoCodes[code]) { let promo = promoCodes[code]; if (promo.type === 'honey') honey += promo.reward; if (promo.type === 'gold') goldCoins += promo.reward; claimedPromos.push(code); save('claimedPromos', claimedPromos); save('honey', honey); save('goldCoins', goldCoins); document.getElementById('promoMsg').textContent = "+" + promo.reward + (promo.type === 'honey' ? " меда!" : " золота!"); document.getElementById('promoMsg').style.color = "#4CAF50"; playSound('levelup'); updateUI(); }
+        else { document.getElementById('promoMsg').textContent = "Неверный промокод!"; document.getElementById('promoMsg').style.color = "#d84315"; playSound('error'); }
+    }
+
+    // 7-ДНЕВНЫЕ
+    const weeklyRewards = [{ day: 1, reward: 500 }, { day: 2, reward: 1000 }, { day: 3, reward: 2000 }, { day: 4, reward: 5000 }, { day: 5, reward: 10000 }, { day: 6, reward: 25000 }, { day: 7, reward: 50000 }];
+    function openWeekly() { if (currentDate !== lastWeeklyDate) { if (weeklyDay < 7) { weeklyDay++; save('weeklyDay', weeklyDay); save('lastWeeklyDate', currentDate); weeklyClaimed = false; save('weeklyClaimed', weeklyClaimed); } else { weeklyDay = 1; save('weeklyDay', weeklyDay); save('lastWeeklyDate', currentDate); weeklyClaimed = false; save('weeklyClaimed', weeklyClaimed); } } renderWeekly(); document.getElementById('weeklyModal').style.display = 'flex'; }
+    function renderWeekly() { const grid = document.getElementById('weeklyGrid'); grid.innerHTML = ''; weeklyRewards.forEach(w => { let div = document.createElement('div'); div.className = 'weekly-day'; if (w.day === weeklyDay && !weeklyClaimed) div.classList.add('active'); if (w.day < weeklyDay || (w.day === weeklyDay && weeklyClaimed)) div.classList.add('claimed'); div.innerHTML = `<span style="font-size: 12px;">День ${w.day}</span><span class="weekly-reward-val">${w.reward} c</span>`; grid.appendChild(div); }); let btn = document.getElementById('weeklyClaimBtn'); if (weeklyClaimed || weeklyDay === 0) { btn.disabled = true; btn.textContent = "Уже получено!"; } else { btn.disabled = false; btn.textContent = "Забрать награду"; } }
+    function claimWeekly() { if (weeklyDay > 0 && !weeklyClaimed) { let reward = weeklyRewards[weeklyDay - 1].reward; honey += reward; save('honey', honey); weeklyClaimed = true; save('weeklyClaimed', weeklyClaimed); playSound('levelup'); renderWeekly(); updateUI(); } }
+    function closeWeekly() { document.getElementById('weeklyModal').style.display = 'none'; }
+
+    // AIRDROP
+    function openAirdrop() { document.getElementById('airdropModal').style.display = 'flex'; document.getElementById('tonAddressInput').value = connectedWallet; } function closeAirdrop() { document.getElementById('airdropModal').style.display = 'none'; }
+    function connectWallet() { let addr = document.getElementById('tonAddressInput').value.trim(); if (addr.length < 10) { document.getElementById('walletMsg').textContent = "Введите корректный адрес TON!"; document.getElementById('walletMsg').style.color = "#d84315"; playSound('error'); return; } connectedWallet = addr; save('tonWallet', connectedWallet); document.getElementById('walletMsg').textContent = "Кошелек успешно привязан! 💎"; document.getElementById('walletMsg').style.color = "#4CAF50"; playSound('levelup'); }
+
+    // МУЗЫКА
+    let musicCtx = null; let isMusicPlaying = false; let musicInterval = null;
+    function toggleMusic() { if (!musicCtx) musicCtx = new (window.AudioContext || window.webkitAudioContext)(); if (!isMusicPlaying) { const notes = [261.63, 329.63, 392.00]; const filter = musicCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 1000; const gain = musicCtx.createGain(); gain.gain.value = 0.04; filter.connect(gain); gain.connect(musicCtx.destination); notes.forEach((freq) => { let oscNote = musicCtx.createOscillator(); oscNote.type = 'sine'; oscNote.frequency.value = freq; oscNote.connect(filter); oscNote.start(); setTimeout(() => oscNote.stop(), 10000); }); musicInterval = setInterval(() => { if (!isMusicPlaying) return; notes.forEach((freq) => { let oscNote = musicCtx.createOscillator(); oscNote.type = 'sine'; oscNote.frequency.value = freq; oscNote.connect(filter); oscNote.start(); setTimeout(() => oscNote.stop(), 10000); }); }, 10000); isMusicPlaying = true; document.querySelector('.music-btn').style.opacity = '1'; } else { clearInterval(musicInterval); isMusicPlaying = false; document.querySelector('.music-btn').style.opacity = '0.3'; } }
+
+    // ОФФЛАЙН
+    function checkOfflineEarnings() { const now = Date.now(); let lastSeen = load('lastSeen', now); let offlineSeconds = Math.floor((now - lastSeen) / 1000); if (offlineSeconds > 28800) offlineSeconds = 28800; if (offlineSeconds > 30) { let offlineGain = Math.floor(offlineSeconds * getFarmIncome()); if (offlineGain > 0) { document.getElementById('offlineReward').textContent = "+" + offlineGain + " c"; document.getElementById('offlineModal').style.display = 'flex'; window.offlineGain = offlineGain; } } save('lastSeen', now); }
+    checkOfflineEarnings();
+    function claimOffline() { honey += window.offlineGain || 0; save('honey', honey); document.getElementById('offlineModal').style.display = 'none'; playSound('upgrade'); updateUI(); }
+
+    function goToSlide(num) { const phone = document.getElementById('phoneApp'); for(let i=1; i<=5; i++) document.getElementById('tab' + i).classList.toggle('active', num === i); phone.classList.toggle('show-slide-1', num === 1); phone.classList.toggle('show-slide-2', num === 2); phone.classList.toggle('show-slide-3', num === 3); phone.classList.toggle('show-slide-4', num === 4); phone.classList.toggle('show-slide-5', num === 5); }
+    function openAchievements() { document.getElementById('achModal').style.display = 'flex'; renderAchievements(); } function closeAchievements() { document.getElementById('achModal').style.display = 'none'; }
+    function openPassModal() { document.getElementById('passModal').style.display = 'flex'; updateUI(); } function closePassModal() { document.getElementById('passModal').style.display = 'none'; }
+    function openMiniGame() { document.getElementById('miniModal').style.display = 'flex'; } function closeMiniGame() { document.getElementById('miniModal').style.display = 'none'; }
+    function switchGameTab(type) { document.querySelectorAll('.game-tab').forEach(el => el.classList.remove('active')); document.querySelectorAll('.game-content').forEach(el => el.classList.remove('active')); if (type === 'wheel') { document.querySelectorAll('.game-tab')[0].classList.add('active'); document.getElementById('game-wheel').classList.add('active'); } if (type === 'mine') { document.querySelectorAll('.game-tab')[1].classList.add('active'); document.getElementById('game-mine').classList.add('active'); } if (type === 'pinco') { document.querySelectorAll('.game-tab')[2].classList.add('active'); document.getElementById('game-pinco').classList.add('active'); } }
+
+    function spawnGoldenBee() { let golden = document.createElement('div'); golden.className = 'golden-bee'; golden.innerHTML = '🐝'; golden.style.left = (Math.random() * 70 + 15) + '%'; golden.style.top = (Math.random() * 40 + 20) + '%'; golden.onclick = function() { goldCoins += 2; honey += 1000; save('goldCoins', goldCoins); save('honey', honey); playSound('levelup'); this.remove(); updateUI(); }; document.getElementById('phoneApp').appendChild(golden); setTimeout(() => golden.remove(), 15000); }
+    setInterval(spawnGoldenBee, 1200000);
+
+    // ЛОКАЦИИ
+    let currentLocation = 1;
+    const locationsData = { 1: { name: "Луг", emoji: "🌼", desc: "Простые цветы", enemies: [{hp: 50, atk: 5, def: 0, reward: 100, name: "Жук", color: "#FF5722"}, {hp: 500, atk: 20, def: 5, reward: 5000, name: "Злая Оса", color: "#212121"}]}, 2: { name: "Лес", emoji: "🌲", desc: "Редкие травы", enemies: [{hp: 1500, atk: 60, def: 20, reward: 15000, name: "Медведь-Граббитель", color: "#3E2723"}, {hp: 5000, atk: 90, def: 40, reward: 50000, name: "Волк-Пчела", color: "#455A64"}, {hp: 10000, atk: 150, def: 50, reward: 100000, name: "Еж-Охотник", color: "#4E342E"}]}, 3: { name: "Дикий Сад", emoji: "🌿", desc: "Требует кликания!", enemies: [{hp: 5000, atk: 80, def: 30, reward: 50000, name: "Колючий Шип", color: "#9C27B0", requiresClick: true}]}, 4: { name: "Горы", emoji: "🏔️", desc: "Высокие награды", enemies: [{hp: 50000, atk: 300, def: 100, reward: 500000, name: "Каменный Шершень", color: "#607D8B"}, {hp: 200000, atk: 600, def: 200, reward: 2000000, name: "Горный Титан", color: "#795548"}]}, 5: { name: "Небо", emoji: "☁️", desc: "Легендарный бой", enemies: [{hp: 1000000, atk: 1500, def: 500, reward: 10000000, name: "Дракон-Оса", color: "#D32F2F"}]} };
+    
+    // ИСПРАВЛЕНИЕ ОТОБРАЖЕНИЯ НАГРАД И СПИСКА
+    function selectLocation(num) { currentLocation = num; document.querySelectorAll('.loc-btn').forEach((el, i) => el.classList.toggle('active', i === num - 1)); renderBots(); }
+    function renderBots() {
+        const loc = locationsData[currentLocation]; const list = document.getElementById('botList');
+        list.innerHTML = `<div style="margin-bottom:10px; font-weight:800;">${loc.emoji} ${loc.name}: ${loc.desc}</div>`;
+        loc.enemies.forEach((enemy, index) => {
+            let div = document.createElement('div'); div.className = 'bot-card';
+            div.innerHTML = `<div style="font-size:30px; margin-right:10px;">${loc.emoji}</div><div class="bot-info"><div class="bot-name">${enemy.name}</div><div class="bot-stats">HP: ${enemy.hp} | Атака: ${enemy.atk}</div></div><div style="color:#4CAF50; font-weight:800;">${enemy.reward} c</div>`;
+            div.onclick = () => startBattle(index); list.appendChild(div);
+        });
+    }
+
+    // ИСПРАВЛЕННЫЙ БОЙ БЕЗ ЗАМИРАНИЙ
+    let currentBot = null; let playerHP = 100; let botHP = 0; let isDefending = false; let isBotTurn = false; let requiresClick = false;
+    function getPlayerMaxHP() { return 100 + (armorLvl * 50); }
+    function getPlayerAttack() { return Math.floor((clickPower * 2 + passiveRate + weaponLvl * 10) * prestigeMult) + 10; }
+    function getPlayerDefense() { return Math.floor(passiveRate + shieldLvl * 10) + 5; }
+    function startBattle(botIndex) {
+        currentBot = locationsData[currentLocation].enemies[botIndex]; requiresClick = currentBot.requiresClick || false;
+        playerHP = getPlayerMaxHP(); botHP = currentBot.hp; isDefending = false; isBotTurn = false;
+        document.getElementById('botList').style.display = 'none'; document.getElementById('battleArea').style.display = 'block';
+        document.getElementById('botName').textContent = currentBot.name; document.getElementById('fightLog').textContent = "Бой начался!"; updateBattleUI();
+    }
+    function updateBattleUI() { document.getElementById('playerHPBar').style.width = (playerHP / getPlayerMaxHP() * 100) + "%"; document.getElementById('botHPBar').style.width = (botHP / currentBot.hp * 100) + "%"; document.getElementById('btnAtk').disabled = isBotTurn; document.getElementById('btnDef').disabled = isBotTurn; document.getElementById('btnCrit').disabled = isBotTurn; }
+    function createPollenParticles(element) { for(let i = 0; i < 8; i++) { let part = document.createElement('div'); part.className = 'pollen-particle'; part.style.left = (Math.random() * 80 + 10) + 'px'; part.style.top = (Math.random() * 80 + 10) + 'px'; part.style.setProperty('--dx', (Math.random() * 60 - 30) + 'px'); part.style.setProperty('--dy', (Math.random() * -40 - 10) + 'px'); element.appendChild(part); setTimeout(() => part.remove(), 700); } }
+    function botTurn() {
+        if (!currentBot || botHP <= 0) return; isBotTurn = true; updateBattleUI();
+        setTimeout(() => {
+            let botDamage = Math.max(1, currentBot.atk - getPlayerDefense());
+            if (isDefending) { botDamage = Math.floor(botDamage * 0.5); isDefending = false; document.getElementById('fightLog').textContent = "Ты успешно защитился!"; }
+            else document.getElementById('fightLog').textContent = currentBot.name + " атакует и наносит " + botDamage + " урона!";
+            playerHP -= botDamage; createPollenParticles(document.getElementById('playerCombatBee').parentElement);
+            if (playerHP <= 0) { playerHP = 0; updateBattleUI(); document.getElementById('fightLog').textContent = "Ты проиграл..."; document.getElementById('btnAtk').disabled = true; document.getElementById('btnDef').disabled = true; document.getElementById('btnCrit').disabled = true; setTimeout(() => { honey += 100; save('honey', honey); alert("Утешительный приз: +100 меда!"); endBattle(); }, 1500); return; }
+            updateBattleUI(); isBotTurn = false;
+        }, 800);
+    }
+    function playerAttack() { if (isBotTurn || !currentBot) return; let playerDamage = Math.max(1, getPlayerAttack() - currentBot.def); botHP -= playerDamage; document.getElementById('fightLog').textContent = "Ты атакуешь и наносишь " + playerDamage + " урона!"; playSound('click'); createPollenParticles(document.getElementById('botCombatBee').parentElement); updateBattleUI(); if (botHP <= 0) { botHP = 0; updateBattleUI(); document.getElementById('fightLog').textContent = "Победа! Ты победил " + currentBot.name + "!"; playSound('levelup'); honey += currentBot.reward; save('honey', honey); setTimeout(endBattle, 1500); } else { botTurn(); } }
+    function playerDefend() { if (isBotTurn || !currentBot) return; isDefending = true; document.getElementById('fightLog').textContent = "Ты занял оборонительную позицию!"; playSound('upgrade'); updateBattleUI(); botTurn(); }
+    function playerCrit() { if (isBotTurn || !currentBot) return; if (Math.random() < 0.5) { let critDamage = Math.floor((getPlayerAttack() * 2.5) - currentBot.def); if (critDamage < 1) critDamage = 1; botHP -= critDamage; document.getElementById('fightLog').textContent = "💥 КРИТ! Ты наносишь " + critDamage + " урона!"; playSound('levelup'); } else { document.getElementById('fightLog').textContent = "Ты промахнулся! Соперник готовится атаковать..."; playSound('error'); } updateBattleUI(); if (botHP <= 0) { botHP = 0; updateBattleUI(); document.getElementById('fightLog').textContent = "Победа!"; playSound('levelup'); honey += currentBot.reward; save('honey', honey); setTimeout(endBattle, 1500); } else { botTurn(); } }
+    function endBattle() { document.getElementById('battleArea').style.display = 'none'; document.getElementById('botList').style.display = 'block'; currentBot = null; isBotTurn = false; updateUI(); }
+
+    function createSparkles(e) { const stage = document.getElementById('beeButton'); for(let i = 0; i < 6; i++) { let spark = document.createElement('div'); spark.className = 'sparkle'; spark.style.left = (Math.random() * 60 - 30) + 'px'; spark.style.top = (Math.random() * 60 - 30) + 'px'; spark.style.background = Math.random() > 0.5 ? '#FFD700' : '#FFF'; spark.style.setProperty('--dx', (Math.random() * 80 - 40) + 'px'); spark.style.setProperty('--dy', (Math.random() * -80 - 20) + 'px'); stage.appendChild(spark); setTimeout(() => spark.remove(), 600); } }
+
+    // ОСНОВНАЯ ЛОГИКА
+    function getSkinBonus() { let bonus = { click: 0, passive: 0, combo: 0 }; if (skins.gold.equipped) bonus.click += 5; if (skins.cyber.equipped) bonus.passive += 0.2; if (skins.ninja.equipped) bonus.combo += 1; if (skins.fire.equipped) { bonus.click += 10; bonus.passive += 0.5; } return bonus; }
+    function addPassXP(amount) { if (passLevel >= passMaxLevel) return; passXP += amount; while (passXP >= passXPNeeded && passLevel < passMaxLevel) { passXP -= passXPNeeded; passLevel++; playSound('levelup'); } save('passLevel', passLevel); save('passXP', passXP); }
+    function tapBee(event) { let bonus = getSkinBonus(); combo++; clearTimeout(comboTimer); comboTimer = setTimeout(() => { combo = 0; }, 1500 + bonus.combo * 1000); let comboMultiplier = 1 + Math.min(combo, 20) * 0.1; let totalGain = Math.floor((clickPower + bonus.click) * comboMultiplier * globalMultiplier * prestigeMult); honey += totalGain; xp += totalGain; totalClicks++; totalHoneyEarned += totalGain; if (combo > maxComboReached) maxComboReached = combo; save('maxComboReached', maxComboReached); save('totalHoneyEarned', totalHoneyEarned); addPassXP(1); playSound('click'); const bee = document.getElementById('beeWrap'); bee.classList.remove('beep-pop'); void bee.offsetWidth; bee.classList.add('beep-pop'); createSparkles(); const beeStage = document.querySelector('.center-stage'); const floatingNumber = document.createElement('div'); floatingNumber.classList.add('floating-number'); floatingNumber.textContent = '+' + totalGain; if (combo >= 10) floatingNumber.classList.add('hot'); beeStage.appendChild(floatingNumber); setTimeout(() => floatingNumber.remove(), 1200); checkLevel(); updateUI(); }
+    function checkLevel() { if (xp >= xpNeeded) { level++; xp = 0; xpNeeded *= 2; save('level', level); save('xp', xp); save('xpNeeded', xpNeeded); playSound('levelup'); } }
+    function buyClickUpgrade() { if (honey >= upgradeCostClick) { honey -= upgradeCostClick; clickPower++; upgradeCostClick*=2; save('honey', honey); save('clickPower', clickPower); save('costClick', upgradeCostClick); playSound('upgrade'); updateUI(); } else playSound('error'); }
+    function buyPassiveUpgrade() { if (honey >= upgradeCostPassive) { honey -= upgradeCostPassive; passiveRate+=2; upgradeCostPassive*=2; save('honey', honey); save('passiveRate', passiveRate); save('costPassive', upgradeCostPassive); playSound('upgrade'); updateUI(); } else playSound('error'); }
+    function buyEnergyUpgrade() { if (honey >= upgradeCostEnergy) { honey -= upgradeCostEnergy; passiveRate*=2; upgradeCostEnergy*=2; save('honey', honey); save('passiveRate', passiveRate); save('costEnergy', upgradeCostEnergy); playSound('upgrade'); updateUI(); } else playSound('error'); }
+    function doPrestige() { if (level < 50) { return; } if (!confirm("Сбросить прогресс ради +50% дохода?")) return; honey = 0; clickPower = 1; passiveRate = 0; level = 1; xp = 0; hiveCount = 0; grandpaLevel = 1; globalMultiplier = 1; hasQueen = false; pollen++; save('pollen', pollen); prestigeMult = 1 + (pollen * 0.5); save('honey', honey); save('clickPower', clickPower); save('passiveRate', passiveRate); save('level', level); save('xp', xp); save('hiveCount', hiveCount); save('grandpaLevel', grandpaLevel); save('hasQueen', false); playSound('levelup'); updateUI(); }
+    function getGoldCost(lvl) { return Math.floor(10 * Math.pow(3, lvl)); }
+    function buyGear(type) { let cost = getGoldCost(type === 'weapon' ? weaponLvl : type === 'shield' ? shieldLvl : armorLvl); if (goldCoins >= cost) { goldCoins -= cost; if (type === 'weapon') { weaponLvl++; save('weaponLvl', weaponLvl); } else if (type === 'shield') { shieldLvl++; save('shieldLvl', shieldLvl); } else { armorLvl++; save('armorLvl', armorLvl); } save('goldCoins', goldCoins); playSound('upgrade'); updateUI(); } else playSound('error'); }
+    
+    // ИСПРАВЛЕНИЕ: ФЕРМА БЕЗ СЛИЯНИЯ
+    function getFarmIncome() { let income = hiveCount * (2 * grandpaLevel); if (mutantGrandpa) { income *= 1.5; } return income; }
+    function renderFarm() { const grid = document.getElementById('hiveGrid'); grid.innerHTML = ''; for (let i = 0; i < Math.min(hiveCount, 9); i++) { let hiveDiv = document.createElement('div'); hiveDiv.className = 'hive-slot'; hiveDiv.textContent = '🏠'; hiveDiv.style.fontSize = (20 + (grandpaLevel * 5)) + 'px'; grid.appendChild(hiveDiv); } document.getElementById('farmInfo').textContent = "Ульев: " + hiveCount + " | Доход: +" + Math.floor(getFarmIncome()) + "/сек"; document.getElementById('buyHiveBtn').textContent = "Купить Улей (" + Math.floor(hiveCost) + " c)"; document.getElementById('buyHiveBtn').classList.toggle('cant-buy', honey < hiveCost); document.getElementById('upgradeGrandpaBtn').textContent = "Ведро Деда (" + Math.floor(grandpaCost) + " c)"; document.getElementById('upgradeGrandpaBtn').classList.toggle('cant-buy', honey < grandpaCost); }
+    function buyHive() { if (hiveCount < 9) { if (honey >= hiveCost) { honey -= hiveCost; hiveCount++; hiveCost = 1000 * Math.pow(2, hiveCount); save('honey', honey); save('hiveCount', hiveCount); playSound('upgrade'); updateUI(); } else playSound('error'); } else { alert("Максимум 9 ульев!"); } }
+    function upgradeGrandpa() { if (honey >= grandpaCost) { honey -= grandpaCost; grandpaLevel += 1; grandpaCost = 500 * Math.pow(2.5, grandpaLevel - 1); save('honey', honey); save('grandpaLevel', grandpaLevel); playSound('upgrade'); updateUI(); } else playSound('error'); }
+    
+    // НОВЫЙ ГЕРОЙ: МУТИРОВАННЫЙ ДЕД (Старый Пердун)
+    function buyMutantGrandpa() {
+        if (!mutantGrandpa && honey >= 150000) {
+            honey -= 150000; mutantGrandpa = true; save('honey', honey); save('mutantGrandpa', true);
+            playSound('levelup'); updateUI();
+            alert("Старый Пердун куплен! Доход Дедушки увеличен на 50%!");
+        } else if (!mutantGrandpa) { playSound('error'); }
+    }
+
+    function buyOrEquipSkin(skinId) { let skin = skins[skinId]; if (skin.owned) { skin.equipped = !skin.equipped; save(skinId + 'Eq', skin.equipped); if (skin.equipped) for (let id in skins) if (id !== skinId && skins[id].equipped) { skins[id].equipped = false; save(id + 'Eq', false); } updateSkinUI(); } else { if (honey >= skin.cost) { honey -= skin.cost; skin.owned = true; skin.equipped = true; for (let id in skins) if (id !== skinId) { skins[id].equipped = false; save(id + 'Eq', false); } save('honey', honey); save(skinId, true); save(skinId + 'Eq', true); playSound('upgrade'); updateSkinUI(); } else playSound('error'); } }
+    function updateSkinUI() { document.getElementById('skinGoldAction').textContent = skins.gold.owned ? (skins.gold.equipped ? "Надет" : "Надеть") : "Купить (15к)"; document.getElementById('skinCyberAction').textContent = skins.cyber.owned ? (skins.cyber.equipped ? "Надет" : "Надеть") : "Купить (40к)"; document.getElementById('skinNinjaAction').textContent = skins.ninja.owned ? (skins.ninja.equipped ? "Надет" : "Надеть") : "Купить (100к)"; document.getElementById('skinGoldAction').className = skins.gold.equipped ? "skin-action equipped" : "skin-action"; document.getElementById('skinCyberAction').className = skins.cyber.equipped ? "skin-action equipped" : "skin-action"; document.getElementById('skinNinjaAction').className = skins.ninja.equipped ? "skin-action equipped" : "skin-action"; document.getElementById('queenCard').classList.toggle('can-buy', !hasQueen && honey >= 50000); }
+    function buyQueen() { if (honey >= 50000 && !hasQueen) { honey -= 50000; hasQueen = true; globalMultiplier = 2; save('honey', honey); save('hasQueen', true); playSound('levelup'); updateUI(); } else playSound('error'); }
+
+    function spinWheel() { if (honey < 50) { playSound('error'); return; } honey -= 50; save('honey', honey); let reward = Math.floor(Math.random() * 5 + 1) * 10; honey += reward; document.getElementById('wheelResult').textContent = "+" + reward + " c"; document.getElementById('wheelResult').style.transform = "rotate(" + (Math.random() * 360 + 720) + "deg)"; playSound('upgrade'); updateUI(); setTimeout(() => document.getElementById('wheelResult').style.transform = "rotate(0deg)", 600); }
+    function startMine() { if (honey < 100) { playSound('error'); return; } honey -= 100; save('honey', honey); document.querySelectorAll('.mine-rock').forEach(r => { r.textContent = "🪨"; r.disabled = false; }); playSound('click'); updateUI(); }
+    function mineRock(index) { let rocks = document.querySelectorAll('.mine-rock'); if (rocks[index].textContent !== "🪨") return; let rewards = ["+50c", "+100c", "+1🪙"]; let reward = rewards[Math.floor(Math.random() * rewards.length)]; rocks[index].textContent = reward; if (reward.includes("c")) honey += parseInt(reward.replace(/\D/g, "")); if (reward.includes("🪙")) goldCoins += 1; save('honey', honey); save('goldCoins', goldCoins); playSound('upgrade'); updateUI(); }
+    function playPinco() { if (honey < 200) { playSound('error'); return; } honey -= 200; save('honey', honey); let cells = document.querySelectorAll('.pinco-grid .mine-rock'); cells.forEach(c => { c.textContent = "❓"; }); let prizes = ["+50c", "+200c", "+1🪙", "+100c", "+2🪙", "+150c", "+2🪙", "+250c", "+3🪙"]; prizes.sort(() => Math.random() - 0.5); setTimeout(() => { cells.forEach((cell, i) => { cell.textContent = prizes[i]; if (prizes[i].includes("🪙")) { goldCoins += parseInt(prizes[i].replace(/\D/g, "")); } if (prizes[i].includes("c")) { honey += parseInt(prizes[i].replace(/\D/g, "")); } }); save('goldCoins', goldCoins); save('honey', honey); playSound('upgrade'); updateUI(); }, 500); }
+
+    function generateCode() { let code = "BEE-" + Math.random().toString(36).substring(2, 8).toUpperCase(); document.getElementById('myCode').textContent = code; save('myCode', code); }
+    generateCode();
+    
+    // Реферальная система (убрано демо)
+    function copyRefCode() { let code = document.getElementById('myCode').textContent; let referalLink = `https://t.me/YOUR_BOT_USERNAME?start=${code}`; navigator.clipboard.writeText(referalLink).then(() => { document.getElementById('refMsg').textContent = "Ссылка скопирована!"; setTimeout(() => document.getElementById('refMsg').textContent = "", 2000); alert("Ссылка: " + referalLink); }); }
+    const urlParams = new URLSearchParams(window.location.search); const referrerCode = urlParams.get('start'); const userId = (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) || "test_user";
+    if (referrerCode && refCount === 0) { fetch(`${SERVER_URL}/claim-referral?user_id=${userId}&referrer_code=${referrerCode}`).then(r => r.json()).then(data => { if (data.status === "success") { refCount++; save('refCount', refCount); } }).catch(e => console.log("Сервер недоступен")); }
+
+    // Достижения
+    const achievements = [ {id: 1, name: "Первые шаги", desc: "Сделай 1 клик", req: 1, type: 'clicks', reward: 50}, {id: 2, name: "Разминка", desc: "100 кликов", req: 100, type: 'clicks', reward: 200}, {id: 3, name: "Трудяга", desc: "500 кликов", req: 500, type: 'clicks', reward: 1000}, {id: 10, name: "Бог кликов", desc: "1 000 000 кликов", req: 1000000, type: 'clicks', reward: 5000000}, {id: 76, name: "Пригласитель", desc: "Пригласи 1 друга", req: 1, type: 'ref', reward: 500}, {id: 79, name: "Философ", desc: "Сделай Престиж", req: 1, type: 'pollen', reward: 50000} ];
+    function getStatValue(type) { switch(type) { case 'clicks': return totalClicks; case 'earned': return totalHoneyEarned; case 'honey': return honey; case 'level': return level; case 'ref': return refCount; case 'pollen': return pollen; default: return 0; } }
+    function renderAchievements() { const list = document.getElementById('achList'); list.innerHTML = ''; let claimedCount = 0; achievements.forEach(ach => { let currentVal = getStatValue(ach.type); let isUnlocked = currentVal >= ach.req; let isClaimed = achClaimed.includes(ach.id); if (isClaimed) claimedCount++; let itemDiv = document.createElement('div'); itemDiv.className = 'pass-item'; if (isUnlocked && !isClaimed) itemDiv.classList.add('can-claim'); if (isClaimed) itemDiv.classList.add('claimed'); if (!isUnlocked) itemDiv.classList.add('locked'); itemDiv.innerHTML = `<div class="pass-num">${ach.id}</div><div class="pass-reward-info">${ach.name}<br><span style="color:#888;">${ach.desc} (${currentVal}/${ach.req})</span></div><button class="pass-reward-btn" ${!isUnlocked || isClaimed ? 'disabled' : ''}>${isClaimed ? '✓' : '+' + ach.reward + 'c'}</button>`; let btn = itemDiv.querySelector('button'); btn.onclick = () => { achClaimed.push(ach.id); save('achClaimed', achClaimed); honey += ach.reward; save('honey', honey); renderAchievements(); updateUI(); }; list.appendChild(itemDiv); }); document.getElementById('achCountText').textContent = claimedCount + " / " + achievements.length; document.getElementById('achProgressFill').style.width = (claimedCount / achievements.length * 100) + "%"; }
+
+    // Покупка пропуска за TON
+    async function buyPassPremium() { if (!tonConnectUI) { playSound('error'); alert("Ошибка подключения к TON. Перезагрузите страницу или проверьте интернет. Покупка невозможна!"); return; } try { if (!tonConnectUI.connected) { await tonConnectUI.openModal(); } const userId = (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) || "test_user"; const paymentData = await fetch(`${SERVER_URL}/create-payment?user_id=${userId}`).then(r => r.json()); const transaction = { validUntil: Math.floor(Date.now() / 1000) + 360, messages: [{ address: paymentData.address, amount: (paymentData.amount * 1000000000).toString(), payload: paymentData.order_id }] }; const result = await tonConnectUI.sendTransaction(transaction); let verify = { status: "pending" }; for (let i = 0; i < 5; i++) { await new Promise(r => setTimeout(r, 2000)); verify = await fetch(`${SERVER_URL}/verify-payment?order_id=${paymentData.order_id}&tx_hash=${result.boc}`).then(r => r.json()); if (verify.status === "success") break; } if (verify.status === "success") { passPremium = true; save('passPremium', true); playSound('levelup'); alert("Пропуск успешно активирован!"); updateUI(); } else { alert("Платеж еще обрабатывается, проверьте позже."); } } catch (e) { alert("Транзакция отменена или ошибка."); } }
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); let isMuted = false;
+    function toggleMute() { isMuted = !isMuted; document.getElementById('muteBtn').innerHTML = isMuted ? "🔇" : "🔊"; }
+    function playSound(type) { if (isMuted) return; if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc.connect(gainNode); gainNode.connect(audioCtx.destination); if (type === 'click') { osc.type = 'sine'; osc.frequency.setValueAtTime(300, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1); gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15); osc.start(); osc.stop(audioCtx.currentTime + 0.15); } else if (type === 'upgrade') { osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.15); gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); } else if (type === 'error') { osc.type = 'sine'; osc.frequency.setValueAtTime(200, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2); gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2); osc.start(); osc.stop(audioCtx.currentTime + 0.2); } else if (type === 'levelup') { osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.2); osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.4); gainNode.gain.setValueAtTime(0.07, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.7); osc.start(); osc.stop(audioCtx.currentTime + 0.7); } }
+
+    function updateUI() { let bonus = getSkinBonus(); let farmIncome = getFarmIncome(); document.getElementById('honeyCount').textContent = Math.floor(honey) + " c"; document.getElementById('xpCount').textContent = "+" + Math.floor(passiveRate * (1 + bonus.passive) * globalMultiplier * prestigeMult + farmIncome); document.getElementById('energyCount').textContent = "x" + globalMultiplier; document.getElementById('costClick').textContent = Math.floor(upgradeCostClick); document.getElementById('costPassive').textContent = Math.floor(upgradeCostPassive); document.getElementById('costEnergy').textContent = Math.floor(upgradeCostEnergy); document.getElementById('queenCost').textContent = "50 000 c"; document.getElementById('levelText').textContent = "LEVEL " + level; document.getElementById('progressFill').style.width = ((xp / xpNeeded) * 100) + "%"; 
+
+        // Обновление Старого Пердуна
+        if (mutantGrandpa) { document.getElementById('mutantGrandpaAction').textContent = "✓ Куплен"; document.getElementById('mutantGrandpaAction').className = "skin-action equipped"; document.getElementById('mutantGrandpaCard').style.borderColor = "#28a745"; }
+
+        if (passPremium) { document.getElementById('passBuyBtn').textContent = "✓ Элитный Активирован"; document.getElementById('passBuyBtn').disabled = true; } else { document.getElementById('passBuyBtn').textContent = "Купить за 2.2 TON"; document.getElementById('passBuyBtn').disabled = false; }
+        document.getElementById('cardClick').classList.toggle('can-buy', honey >= upgradeCostClick); document.getElementById('cardPassive').classList.toggle('can-buy', honey >= upgradeCostPassive); document.getElementById('cardBoost').classList.toggle('can-buy', honey >= upgradeCostEnergy); document.getElementById('totalHoneyStats').textContent = Math.floor(honey) + " c"; document.getElementById('totalClicksStats').textContent = totalClicks; document.getElementById('goldDisplay').textContent = goldCoins; document.getElementById('prestigeBtn').disabled = level < 50; document.getElementById('weaponBuff').textContent = "+" + (weaponLvl * 10) + " к Атаке"; document.getElementById('shieldBuff').textContent = "+" + (shieldLvl * 10) + " к Защите"; document.getElementById('armorBuff').textContent = "+" + (armorLvl * 50) + " к Макс. HP"; document.getElementById('weaponCost').textContent = getGoldCost(weaponLvl) + " 🪙"; document.getElementById('shieldCost').textContent = getGoldCost(shieldLvl) + " 🪙"; document.getElementById('armorCost').textContent = getGoldCost(armorLvl) + " 🪙"; document.getElementById('refCount').textContent = refCount; document.getElementById('passProgressFill').style.width = ((passLevel / passMaxLevel) * 100) + "%"; document.getElementById('passLevelText').textContent = "Уровень " + passLevel + " / " + passMaxLevel; renderPassList(); renderFarm(); updateSkinUI(); if (document.getElementById('achModal').style.display === 'flex') renderAchievements(); }
+
+    function renderPassList() { const list = document.getElementById('passList'); list.innerHTML = ''; for (let i = 1; i <= passMaxLevel; i++) { let reward = getPassReward(i); let isUnlocked = passLevel >= i; let isClaimed = passClaimed.includes(i); let itemDiv = document.createElement('div'); itemDiv.className = 'pass-item'; if (isUnlocked && !isClaimed) itemDiv.classList.add('can-claim'); if (isClaimed) itemDiv.classList.add('claimed'); if (!isUnlocked) itemDiv.classList.add('locked'); itemDiv.innerHTML = `<div class="pass-num">${i}</div><div class="pass-reward-info">${reward.icon} ${reward.name} ${reward.amount > 0 ? '+ ' + reward.amount.toLocaleString() + ' c' : ''}</div><button class="pass-reward-btn" ${!isUnlocked || isClaimed ? 'disabled' : ''}>${isClaimed ? '✓' : 'Забрать'}</button>`; let btn = itemDiv.querySelector('button'); btn.onclick = () => claimPassReward(i, reward); list.appendChild(itemDiv); } }
+    function getPassReward(levelNum) { if (levelNum === 100) return { type: 'skin', name: 'Огненная Пчела', icon: '🔥', amount: 0 }; if (levelNum % 20 === 0) return { type: 'passive', name: '+2 Пассивный доход', icon: '⏱️', amount: 0 }; if (levelNum % 10 === 0) return { type: 'click', name: '+1 Сила клика', icon: '💧', amount: 0 }; if (levelNum <= 30) return { type: 'honey', name: 'Мед', icon: '🍯', amount: 500 * levelNum }; if (levelNum <= 70) return { type: 'honey', name: 'Мед', icon: '🍯', amount: 10000 * levelNum }; return { type: 'honey', name: 'Мед', icon: '🍯', amount: 50000 * levelNum }; }
+    function claimPassReward(levelNum, reward) { if (passLevel < levelNum || passClaimed.includes(levelNum)) return; let multiplier = passPremium ? 2 : 1; if (reward.type === 'honey') honey += reward.amount * multiplier; if (reward.type === 'click') clickPower += 1 * multiplier; if (reward.type === 'passive') passiveRate += 2 * multiplier; if (reward.type === 'skin') { skins.fire.owned = true; skins.fire.equipped = true; save('skinFire', true); save('skinFireEq', true); } passClaimed.push(levelNum); save('passClaimed', passClaimed); playSound('upgrade'); updateUI(); }
+
+    setInterval(function() { let bonus = getSkinBonus(); let farmIncome = getFarmIncome(); let gain = (passiveRate * (1 + bonus.passive) * globalMultiplier * prestigeMult) + farmIncome; honey += gain; xp += (gain * 10); totalHoneyEarned += gain; save('honey', honey); save('xp', xp); save('totalHoneyEarned', totalHoneyEarned); addPassXP(1); checkLevel(); updateUI(); }, 1000);
+
+    window.addEventListener('beforeunload', () => { save('honey', honey); save('xp', xp); save('totalClicks', totalClicks); save('lastSeen', Date.now()); });
+    
+    renderBots();
+    updateUI();
+</script>
+</body>
+</html>
